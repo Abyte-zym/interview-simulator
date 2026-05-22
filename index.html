@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java面试模拟器 - 随机出题·即时评分</title>
+<meta name="description" content="2026最新Java实习面试模拟器，随机出题、即时评分、免费使用。Spring Boot、Redis、MySQL、JVM全覆盖。">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a1a2e,#16213e);min-height:100vh;color:#fff;display:flex;justify-content:center;align-items:center;padding:20px}
+.container{max-width:700px;width:100%}
+.header{text-align:center;margin-bottom:2rem}
+.header h1{font-size:2rem;background:linear-gradient(90deg,#00c6ff,#0072ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.5rem}
+.header p{color:#8892b0;font-size:.9rem}
+.card{background:#1e2a4a;border-radius:16px;padding:2rem;margin-bottom:1rem;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.score-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid #2a3a5a}
+.score-item{text-align:center}
+.score-val{font-size:2rem;font-weight:700;color:#00c6ff}
+.score-label{font-size:.75rem;color:#8892b0;margin-top:.25rem}
+.category-tag{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.75rem;margin-bottom:1rem;background:rgba(0,198,255,.15);color:#00c6ff}
+.question{font-size:1.15rem;line-height:1.7;margin-bottom:1.5rem;color:#e4e6f0}
+.answer-hidden{background:#16203a;border-radius:12px;padding:1.2rem;margin-bottom:1.2rem;display:none;border-left:3px solid #00c6ff}
+.answer-hidden.show{display:block}
+.answer-hidden h4{color:#00c6ff;font-size:.85rem;margin-bottom:.5rem}
+.answer-hidden p{color:#8892b0;font-size:.9rem;line-height:1.6}
+.btn-group{display:flex;gap:.75rem;flex-wrap:wrap}
+.btn{padding:10px 24px;border-radius:25px;border:none;cursor:pointer;font-size:.9rem;font-weight:600;transition:all .2s}
+.btn-primary{background:linear-gradient(90deg,#00c6ff,#0072ff);color:#fff}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,198,255,.3)}
+.btn-outline{background:transparent;border:1px solid #3a4a6a;color:#8892b0}
+.btn-outline:hover{border-color:#00c6ff;color:#fff}
+.btn-skip{background:transparent;border:1px solid #ff6b6b33;color:#ff6b6b}
+.btn-skip:hover{background:#ff6b6b22}
+.result-box{text-align:center;padding:2rem;display:none}
+.result-box.show{display:block}
+.result-emoji{font-size:4rem;margin-bottom:1rem}
+.result-text{font-size:1.2rem;color:#e4e6f0;margin-bottom:.5rem}
+.result-score{font-size:3rem;font-weight:800;background:linear-gradient(90deg,#00c6ff,#0072ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.donate-box{text-align:center;margin-top:2rem;padding:1.5rem;background:#1e2a4a;border-radius:16px}
+.donate-box h3{font-size:1rem;margin-bottom:.5rem;color:#00c6ff}
+.donate-box p{color:#8892b0;font-size:.8rem;margin-bottom:1rem}
+.donate-box img{width:200px;border-radius:12px}
+.footer-links{text-align:center;margin-top:1rem}
+.footer-links a{color:#00c6ff;text-decoration:none;font-size:.8rem;margin:0 .5rem}
+.footer-links a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>☕ Java面试模拟器</h1>
+<p>2026最新题库 · 随机出题 · 即时查看答案</p>
+</div>
+<div class="card" id="quiz-card">
+<div class="score-bar">
+<div class="score-item"><div class="score-val" id="correct">0</div><div class="score-label">✅ 掌握</div></div>
+<div class="score-item"><div class="score-val" id="total">0</div><div class="score-label">📝 已答</div></div>
+<div class="score-item"><div class="score-val" id="streak">0</div><div class="score-label">🔥 连对</div></div>
+</div>
+<span class="category-tag" id="cat-tag">Java基础</span>
+<div class="question" id="question">点击开始，模拟真实面试！</div>
+<div class="answer-hidden" id="answer-box">
+<h4>📖 参考答案</h4>
+<p id="answer-text"></p>
+</div>
+<div class="btn-group">
+<button class="btn btn-primary" onclick="showAnswer()">👀 查看答案</button>
+<button class="btn btn-outline" onclick="markCorrect()">✅ 我答对了</button>
+<button class="btn btn-skip" onclick="markWrong()">❌ 我不会</button>
+</div>
+</div>
+<div class="result-box" id="result-box">
+<div class="result-emoji" id="result-emoji">🎉</div>
+<div class="result-text" id="result-text">面试完成！</div>
+<div class="result-score" id="result-score"></div>
+<p style="color:#8892b0;margin-top:.5rem">正确率</p>
+<button class="btn btn-primary" onclick="restart()" style="margin-top:1.5rem">🔄 再来一轮</button>
+</div>
+<div class="donate-box">
+<h3>☕ 这个工具帮到你了？</h3>
+<p>请我喝杯咖啡，支持更多免费工具</p>
+<img src="qrcode.png" alt="赞赏码">
+</div>
+<div class="footer-links">
+<a href="https://Abyte-zym.github.io/java-resume-builder">📝 简历生成器</a>
+<a href="https://Abyte-zym.github.io/java-interview-quiz">📚 面试题库</a>
+<a href="https://Abyte-zym.github.io/java-career-blog">📖 技术博客</a>
+</div>
+</div>
+
+<script>
+const questions = [
+// Java基础
+{c:"Java基础",q:"HashMap的底层数据结构是什么？JDK1.7和1.8有什么区别？",a:"数组+链表+红黑树。JDK1.7是数组+单向链表，头插法扩容会形成死循环。JDK1.8引入红黑树，链表长度>8且数组长度>=64时转为红黑树，尾插法安全。"},
+{c:"Java基础",q:"== 和 equals() 的区别？",a:"==比较的是栈中的值：基本类型比较值，引用类型比较内存地址。equals()默认行为同==，但String、Integer等类重写了equals()比较内容。重写equals必须重写hashCode，否则HashMap/HashSet会出问题。"},
+{c:"Java基础",q:"String、StringBuilder、StringBuffer的区别？",a:"String不可变(底层final char[])，每次修改创建新对象。StringBuilder可变，线程不安全，性能高。StringBuffer可变，synchronized修饰，线程安全但性能低。单线程用StringBuilder。"},
+{c:"Java基础",q:"ArrayList和LinkedList的区别？什么场景用哪个？",a:"ArrayList底层动态数组，随机访问O(1)，插入删除O(n)需移动元素。LinkedList底层双向链表，插入删除O(1)，随机访问O(n)。频繁查询用ArrayList，频繁增删用LinkedList。"},
+{c:"JVM",q:"JVM内存区域有哪些？各自存放什么？",a:"堆：对象实例和数组，GC主战场。方法区：类信息、常量、静态变量(JDK8后叫元空间Metaspace，在本地内存)。栈：局部变量表、操作栈、方法出口。程序计数器：当前线程执行字节码行号。本地方法栈：native方法。"},
+{c:"JVM",q:"CMS和G1垃圾收集器的区别？",a:"CMS以最短停顿为目标，老年代标记清除(不压缩会产生碎片)，搭配ParNew年轻代。G1将堆分为多个Region，可预测停顿(设置MaxGCPauseMillis)，优先回收价值最大的Region，标记整理不产生碎片。G1是JDK9后默认。"},
+{c:"Spring",q:"Spring Boot的@SpringBootApplication注解做了什么？",a:"它是三个注解的复合：@SpringBootConfiguration(标记配置类)、@EnableAutoConfiguration(根据classpath依赖自动配置Bean，如spring-boot-starter-web自动配置Tomcat)、@ComponentScan(扫描当前包及子包的@Component)。"},
+{c:"Spring",q:"Spring如何解决循环依赖？",a:"三级缓存：singletonObjects(成品)、earlySingletonObjects(半成品引用)、singletonFactories(ObjectFactory)。A依赖B、B依赖A时，A创建后把ObjectFactory放入三级缓存，B创建时从三级缓存拿到A的早期引用注入，B完成后A再注入B。仅对单例的setter注入有效。"},
+{c:"MySQL",q:"MySQL索引失效的常见场景？",a:"1.最左前缀不走(联合索引(a,b,c)，查b不用索引)。2.范围查询右边列失效。3.LIKE以%开头。4.对索引列使用函数(WHERE YEAR(date))。5.隐式类型转换(字符串引号没加)。6.OR连接非索引列。7.NOT IN/NOT EXISTS。"},
+{c:"MySQL",q:"如何优化一条慢SQL？",a:"三步法：1.开启慢查询日志(slow_query_log)，找到耗时>1s的SQL。2.EXPLAIN分析执行计划，重点看type(ALL最差→range→ref→eq_ref→const最好)、key(实际用到的索引)、rows(扫描行数)。3.对症下药：加索引、避免SELECT *、改写成JOIN、分页用延迟关联。"},
+{c:"Redis",q:"缓存穿透、击穿、雪崩的区别和解决方案？",a:"穿透：查不存在的数据，请求打到DB。方案：布隆过滤器+缓存空值(短TTL)。击穿：热点key过期瞬间大量请求到DB。方案：互斥锁(setnx)+逻辑过期+热点数据永不过期。雪崩：大量key同时过期DB打挂。方案：过期时间加随机值+多级缓存+限流。"},
+{c:"Redis",q:"Redis为什么快？单线程还是多线程？",a:"Redis6.0前单线程处理命令(串行处理无锁竞争+内存操作+IO多路复用epoll)。Redis6.0后引入多线程IO(网络读写多线程，命令执行仍单线程)。快的原因：纯内存操作、单线程无上下文切换、高效数据结构(C语言的sds/ziplist/skiplist)。"},
+{c:"并发",q:"synchronized和ReentrantLock的区别？",a:"synchronized是JVM层面的关键字，自动加锁释放(代码块结束或异常自动释放)，非公平锁。ReentrantLock是API层面(java.util.concurrent)，需要手动lock()/unlock()(finally中释放)，可公平锁(new ReentrantLock(true))，可中断、可超时、可绑定多个Condition。"},
+{c:"并发",q:"线程池的核心参数有哪些？拒绝策略有几种？",a:"核心参数：corePoolSize(常驻线程)、maximumPoolSize(最大线程)、keepAliveTime(空闲回收时间)、workQueue(阻塞队列)、threadFactory、handler(拒绝策略)。拒绝策略：AbortPolicy抛异常(默认)、CallerRunsPolicy调用者执行、DiscardPolicy直接丢弃、DiscardOldestPolicy丢弃最旧。"},
+{c:"微服务",q:"Sentinel的限流模式有哪些？",a:"三种：1.QPS限流(每秒钟请求数超过阈值限流)。2.并发线程数限流(同时处理请求线程数超阈值限流)。3.基于调用关系的限流(关联资源、链路入口)。支持流控效果：快速失败、Warm Up预热、匀速排队(令牌桶)。"},
+{c:"微服务",q:"RocketMQ如何保证消息不丢失？",a:"生产端：同步发送+sendStatus=SEND_OK确认+失败重试。Broker端：同步刷盘(flushDiskType=SYNC_FLUSH)+主从同步复制。消费端：手动ACK(consumeMessage返回CONSUME_SUCCESS后才确认)。极端情况加消息表+定时对账作为兜底。"},
+{c:"设计模式",q:"单例模式的几种写法？哪种最推荐？",a:"饿汉式(类加载创建，安全但浪费资源)、懒汉式(synchronized，每次加锁低效)、双重检查锁(volatile+两次null检查，推荐)、静态内部类(类加载机制保证，推荐)、枚举(防止反射和反序列化攻击，最安全)。推荐：静态内部类或双重检查锁。"},
+{c:"项目经验",q:"介绍一个你觉得最有挑战的项目？",a:"(以秒杀为例)最有挑战的是秒杀系统。核心难点是库存超卖和流量削峰。我用Redis+Lua脚本原子扣减库存彻底解决超卖，用RocketMQ异步下单削峰填谷保护数据库。压测QPS从800提升到5000+，零超卖。还加了Sentinel限流熔断防止雪崩。"},
+{c:"项目经验",q:"你在项目里做过的最有价值的优化是什么？",a:"RAG知识库的检索准确率优化。初始版本简单按关键词匹配，召回率只有45%。后来改用分块策略(TokenTextSplitter，chunk_size=500，overlap=50)+Embedding向量检索，召回率提升到85%。还加了重排序机制，Top3准确率达到90%+。"},
+{c:"计算机网络",q:"TCP三次握手和四次挥手？",a:"三次握手：SYN(SYN_SENT)→SYN+ACK(SYN_RCVD)→ACK(ESTABLISHED)。四次挥手：FIN→ACK→FIN→ACK。挥手比握手多一次是因为TCP是全双工，收到对方的FIN只表示对方不再发数据，自己可能还有数据要发，所以ACK和FIN分开发。"}
+];
+
+let qIdx=[],curIdx=0,correct=0,total=0,streak=0,maxStreak=0;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function init(){let idxs=Array.from({length:Math.min(questions.length,15)},(_,i)=>i);qIdx=shuffle(idxs);curIdx=0;correct=0;total=0;streak=0;maxStreak=0;document.getElementById('correct').textContent='0';document.getElementById('total').textContent='0';document.getElementById('streak').textContent='0';document.getElementById('quiz-card').style.display='block';document.getElementById('result-box').classList.remove('show');document.getElementById('answer-box').classList.remove('show');loadQuestion()}
+
+function loadQuestion(){if(curIdx>=qIdx.length){finish();return}let q=questions[qIdx[curIdx]];document.getElementById('cat-tag').textContent=q.c;document.getElementById('question').textContent=`${curIdx+1}/${qIdx.length}. ${q.q}`;document.getElementById('answer-text').textContent=q.a;document.getElementById('answer-box').classList.remove('show')}
+
+function showAnswer(){document.getElementById('answer-box').classList.toggle('show')}
+function markCorrect(){correct++;total++;streak++;maxStreak=Math.max(maxStreak,streak);updateScore();curIdx++;loadQuestion()}
+function markWrong(){total++;streak=0;updateScore();curIdx++;loadQuestion()}
+function updateScore(){document.getElementById('correct').textContent=correct;document.getElementById('total').textContent=total;document.getElementById('streak').textContent=streak}
+
+function finish(){document.getElementById('quiz-card').style.display='none';let r=document.getElementById('result-box');r.classList.add('show');let rate=correct/total*100;let emoji=rate>=80?'🏆':rate>=60?'👍':rate>=40?'📚':'💪';let text=rate>=80?'大厂水平！面试稳了！':rate>=60?'基础扎实，查漏补缺就够':rate>=40?'还有进步空间，多刷几轮':'加油！每次练习都在变强';document.getElementById('result-emoji').textContent=emoji;document.getElementById('result-text').textContent=text;document.getElementById('result-score').textContent=Math.round(rate)+'%'}
+
+function restart(){init()}
+
+init();
+</script>
+</body>
+</html>
